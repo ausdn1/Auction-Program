@@ -2,114 +2,103 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title> 내전경매 </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경매 시스템 Pro</title>
     <style>
         :root { --p1: #00d2ff; --p2: #ff4757; --accent: #6c5ce7; --bg: #0f111a; --card: #1a1d2e; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; margin: 0; padding: 20px; }
-        .container { width: 100%; max-width: 900px; }
-        .page { display: none; background: var(--card); padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        .container { width: 100%; max-width: 800px; }
+        .page { display: none; background: var(--card); padding: 30px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
         .active { display: block; }
+        
+        .auction-header { text-align: center; margin-bottom: 25px; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .current-player-name { font-size: 40px; font-weight: 800; color: #fff; text-shadow: 0 0 20px var(--accent); }
 
-        /* 현재 선수 표시 */
-        .auction-header { text-align: center; margin-bottom: 30px; padding: 30px; background: linear-gradient(145deg, #1e2235, #1a1d2e); border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        .current-player-name { font-size: 50px; font-weight: 900; color: #fff; text-shadow: 0 0 30px rgba(108, 92, 231, 0.5); margin: 10px 0; }
-
-        /* 팀 대시보드 */
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px; }
-        .team-card { background: #25293d; padding: 25px; border-radius: 25px; position: relative; border: 2px solid transparent; transition: 0.3s; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .team-card { background: #25293d; padding: 20px; border-radius: 20px; position: relative; border-bottom: 4px solid #444; }
         .team-card.p1 { border-color: var(--p1); }
         .team-card.p2 { border-color: var(--p2); }
-        .team-title { font-size: 22px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* 주사위 UI */
-        .dice-display { position: absolute; top: -15px; right: -15px; background: #fff; color: #000; width: 60px; height: 60px; border-radius: 15px; font-size: 32px; font-weight: 900; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); visibility: hidden; z-index: 10; }
-        .dice-visible { visibility: visible; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { from { transform: scale(0) rotate(-45deg); } to { transform: scale(1) rotate(0); } }
+        .dice-display { position: absolute; top: -10px; right: -10px; background: #fff; color: #000; width: 50px; height: 50px; border-radius: 12px; font-size: 24px; font-weight: 900; display: flex; align-items: center; justify-content: center; visibility: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .dice-visible { visibility: visible; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
 
-        /* 팀원 리스트 UI 개선 */
-        .member-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; min-height: 50px; }
-        .tag { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 15px; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); color: #ddd; }
+        .member-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .tag { background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 15px; font-size: 13px; }
 
-        /* 컨트롤 구역 */
-        .controls { background: #1e2235; padding: 30px; border-radius: 25px; margin-top: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        input[type="number"], input[type="text"] { background: #0c0e16; border: 2px solid #333; color: white; padding: 18px; border-radius: 15px; width: 100%; box-sizing: border-box; font-size: 18px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--accent); }
-        button { background: var(--accent); color: white; border: none; padding: 18px 30px; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; width: 100%; }
-        button:active { transform: scale(0.98); }
-        
-        .dice-msg { background: rgba(255, 71, 87, 0.1); color: var(--p2); padding: 15px; border-radius: 12px; font-weight: bold; margin-bottom: 10px; border: 1px solid var(--p2); }
+        input, button { width: 100%; padding: 15px; margin-top: 10px; border-radius: 12px; border: 1px solid #333; box-sizing: border-box; font-size: 16px; }
+        button { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { filter: brightness(1.2); }
+        button:disabled { background: #444; cursor: not-allowed; }
+
+        .msg-box { background: rgba(255, 71, 87, 0.1); color: var(--p2); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--p2); display: none; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div id="start" class="page active">
-            <h1 style="text-align: center; font-size: 40px; margin-bottom: 40px;">🎲내전경매 </h1>
-            <button onclick="showPage('create')">호스트: 방 만들기</button>
-            <button onclick="showPage('join')" style="background:#444;">게스트: 입장하기</button>
+            <h1 style="text-align: center;">🏟️ 실시간 팀 경매</h1>
+            <button onclick="showPage('create')">방 만들기 (호스트)</button>
+            <button onclick="showPage('join')" style="background:#444;">참여하기 (게스트)</button>
         </div>
 
         <div id="create" class="page">
-            <h2>🏠 선수 명단 설정</h2>
-            <input type="text" id="hostName" placeholder="호스트 팀장 이름">
-            <div id="pInputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;"></div>
-            <button onclick="createRoom()">방 생성하기</button>
+            <h2>🛠️ 선수 등록</h2>
+            <input type="text" id="hostName" placeholder="호스트 이름">
+            <div id="pInputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top:15px;"></div>
+            <button onclick="createRoom()">방 생성</button>
         </div>
 
         <div id="wait" class="page" style="text-align: center;">
-            <h2>참여 코드</h2>
-            <div id="generatedCode" style="font-size: 50px; background:#000; padding:20px; border-radius:20px; letter-spacing:10px; margin: 30px 0; border: 2px dashed var(--main);">----</div>
-            <p>상대 팀장에게 코드를 공유하세요.</p>
+            <h2>접속 코드</h2>
+            <div id="generatedCode" style="font-size: 45px; background:#000; padding:20px; border-radius:15px; letter-spacing:8px; margin: 20px 0; border: 2px dashed var(--p1);">----</div>
+            <p>상대방이 입장하면 시작됩니다.</p>
         </div>
 
         <div id="join" class="page">
-            <h2>🔑 방 참여하기</h2>
-            <input type="text" id="guestName" placeholder="게스트 팀장 이름">
-            <input type="text" id="joinCode" placeholder="코드 4자리 입력" style="margin-top:10px;">
-            <button onclick="joinRoom()">참여하기</button>
+            <h2>🔑 코드 입력</h2>
+            <input type="text" id="guestName" placeholder="게스트 이름">
+            <input type="text" id="joinCode" placeholder="4자리 코드">
+            <button onclick="joinRoom()">입장하기</button>
         </div>
 
         <div id="game" class="page">
             <div class="auction-header">
-                <div style="font-size: 16px; color: #888; font-weight: bold; letter-spacing: 2px;">NEXT PLAYER</div>
-                <div class="current-player-name" id="curP">선수 대기 중</div>
+                <div id="curP" class="current-player-name">대상 대기 중</div>
             </div>
 
             <div class="dashboard">
                 <div class="team-card p1">
                     <div id="dice1" class="dice-display">?</div>
-                    <div class="team-title">
-                        <span id="name1">1팀장</span>
-                        <span id="pts1" style="color:var(--p1)">1000P</span>
-                    </div>
+                    <div style="font-weight: bold;"><span id="name1">1팀장</span></div>
+                    <div id="pts1" style="color:var(--p1); font-size: 20px;">1000P</div>
                     <div class="member-tags" id="list1"></div>
                 </div>
                 <div class="team-card p2">
                     <div id="dice2" class="dice-display">?</div>
-                    <div class="team-title">
-                        <span id="name2">2팀장</span>
-                        <span id="pts2" style="color:var(--p2)">1000P</span>
-                    </div>
+                    <div style="font-weight: bold;"><span id="name2">2팀장</span></div>
+                    <div id="pts2" style="color:var(--p2); font-size: 20px;">1000P</div>
                     <div class="member-tags" id="list2"></div>
                 </div>
             </div>
 
-            <div class="controls">
-                <div id="tieArea" style="display:none;">
-                    <div class="dice-msg" id="diceMsgText">동점입니다! 주사위를 굴리세요.</div>
-                    <button onclick="roll()" style="background:var(--p2); margin-bottom: 10px;">🎲 주사위 굴리기 (1-6)</button>
+            <div style="margin-top: 25px; background: #1e2235; padding: 20px; border-radius: 20px;">
+                <div id="tieArea" class="msg-box"></div>
+                <div id="diceBtnArea" style="display:none;">
+                    <button onclick="roll()" style="background:var(--p2); margin-bottom:10px;">🎲 주사위 굴리기</button>
                 </div>
-                <input type="number" id="bidAmt" placeholder="배팅 포인트 입력 (0~)">
-                <button onclick="bid()" id="bidBtn">비공개 입찰 전송</button>
-                <button onclick="reveal()" style="background:#00b894; margin-top:20px; font-size: 20px;">결과 확인 & 낙찰</button>
+                <input type="number" id="bidAmt" placeholder="입찰가 입력 (0~보유포인트)" min="0">
+                <button onclick="bid()" id="bidBtn">입찰 전송</button>
+                <button onclick="reveal()" style="background:#00b894; margin-top:15px;">결과 확인 & 다음 라운드</button>
             </div>
         </div>
     </div>
 
     <script>
         let myId = null;
-        const pDiv = document.getElementById('pInputs');
-        for(let i=1; i<=8; i++) pDiv.innerHTML += `<input type="text" class="pn" placeholder="선수 ${i}">`;
+        const pInputs = document.getElementById('pInputs');
+        for(let i=1; i<=8; i++) pInputs.innerHTML += `<input type="text" class="pn" placeholder="선수 ${i}">`;
 
         function showPage(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -133,7 +122,7 @@
                 body: JSON.stringify({guest_name: document.getElementById('guestName').value, code: document.getElementById('joinCode').value})
             });
             if(r.ok) { myId = 2; showPage('game'); startPolling(); }
-            else alert("코드 불일치!");
+            else alert("코드가 틀립니다.");
         }
 
         function startPolling() {
@@ -143,58 +132,54 @@
                 
                 if(d.room && d.room.status === 'playing' && document.getElementById('wait').classList.contains('active')) showPage('game');
                 
+                if(d.current_player) document.getElementById('curP').innerText = d.current_player.name;
+                else document.getElementById('curP').innerText = "경매 종료";
+
                 d.leaders.forEach(l => {
                     document.getElementById(`name${l.id}`).innerText = l.name;
                     document.getElementById(`pts${l.id}`).innerText = l.points + "P";
                     document.getElementById(`list${l.id}`).innerHTML = d.teams[l.id].map(m => `<span class="tag">${m}</span>`).join('');
                 });
 
-                if(d.current_player) document.getElementById('curP').innerText = d.current_player.name;
-                else document.getElementById('curP').innerText = "경매 종료";
-
-                // 실시간 주사위 값 동기화
                 d.bids.forEach(b => {
-                    const dBox = document.getElementById(`dice${b.leader_id}`);
-                    if(b.dice > 0) {
-                        dBox.innerText = b.dice;
-                        dBox.classList.add('dice-visible');
-                    } else {
-                        dBox.classList.remove('dice-visible');
-                    }
+                    const box = document.getElementById(`dice${b.leader_id}`);
+                    if(b.dice > 0) { box.innerText = b.dice; box.classList.add('dice-visible'); }
+                    else box.classList.remove('dice-visible');
                 });
             }, 1000);
         }
 
         async function bid() {
-            await fetch('/bid', {
+            const amt = parseInt(document.getElementById('bidAmt').value || 0);
+            const r = await fetch('/bid', {
                 method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({leader_id: myId, amount: parseInt(document.getElementById('bidAmt').value || 0)})
+                body: JSON.stringify({leader_id: myId, amount: amt})
             });
-            document.getElementById('bidBtn').innerText = "입찰 전송됨 ✔️";
+            if(!r.ok) { const ed = await r.json(); alert(ed.detail); }
+            else { document.getElementById('bidBtn').innerText = "입찰 완료 ✔️"; }
         }
 
         async function roll() {
-            const res = await fetch(`/roll-dice?leader_id=${myId}`, {method: 'POST'});
-            const data = await res.json();
-            alert(`내 주사위: ${data.dice}`);
+            await fetch(`/roll-dice?leader_id=${myId}`, {method: 'POST'});
         }
 
         async function reveal() {
             const r = await fetch('/reveal');
             const d = await r.json();
             if(d.status === 'tie_break') {
+                document.getElementById('tieArea').innerText = d.msg;
                 document.getElementById('tieArea').style.display = 'block';
-                document.getElementById('diceMsgText').innerText = d.msg; // "주사위 값이 같습니다! 다시 굴려주세요" 표시
+                document.getElementById('diceBtnArea').style.display = 'block';
             } else if (d.status === 'success') {
                 document.getElementById('tieArea').style.display = 'none';
-                document.getElementById('bidBtn').innerText = "비공개 입찰 전송";
+                document.getElementById('diceBtnArea').style.display = 'none';
+                document.getElementById('bidBtn').innerText = "입찰 전송";
                 document.getElementById('bidAmt').value = "";
-                alert("낙찰 성공! 다음 선수로 넘어갑니다.");
+                alert("낙찰 완료!");
             } else {
-                alert("양쪽 팀장 모두 입찰해야 결과가 공개됩니다.");
+                alert("상대방의 입찰을 기다리세요.");
             }
         }
     </script>
 </body>
-
 </html>
